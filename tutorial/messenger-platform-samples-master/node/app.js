@@ -82,6 +82,9 @@ app.get('/webhook', function(req, res) {
 */
 
 
+
+
+
 app.get('/webhook/', function(req, res) {
   if (req.query['hub.verify_token'] === "yuan") {
     console.log("Validating webhook");
@@ -327,13 +330,20 @@ function receivedMessage(event) {
         sendAccountLinking(senderID);
         break;
 
+      case 'commands':
+        sendTextMessage(senderID, commands);
+        break;
+
       default:
-        sendTextMessage(senderID, messageText);
+        sendTextMessage(senderID, "Sorry, I don't understand. Type list to see all the channels, type the name of a channel to subscribe and type the name again if you want to unsubscribe.");
     }
   } else if (messageAttachments) {
     sendTextMessage(senderID, "Message with attachment received");
   }
 }
+
+
+//var commands = "Type list to see all the channels, type the name of a channel to subscribe and type the name again if you want to unsubscribe." ;
 
 
 /*
