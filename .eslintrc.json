@@ -1,0 +1,69 @@
+{
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "es6": true
+    },
+    "installedESLint": true,
+    "parserOptions": {
+        "ecmaFeatures": {
+            "experimentalObjectRestSpread": true,
+            "jsx": true
+        },
+        "sourceType": "module"
+    },
+    "extends": ["eslint:recommended"],
+    "rules": {
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "quotes": [
+            "off",
+            "single"
+        ],
+        "semi": [
+            "off",
+            "always"
+        ],
+        // Override some general rules
+        "no-unused-vars": ["warn", {"vars": "all", "args": "all"}],
+        "no-console": "off",
+
+        // Add more
+        "block-scoped-var": ["warn"],
+        "default-case": ["error"],
+        "no-fallthrough": ["error"],
+        "eqeqeq": ["error"],
+        "no-caller": ["error"],
+        "no-empty-function": ["warn"],
+        "no-implicit-coercion": ["error"],
+        "no-invalid-this": ["error"],
+        "no-labels": ["error"],
+        "no-param-reassign": ["off"],
+        "no-redeclare": ["error"],
+        "no-self-assign": ["error"],
+        "no-self-compare": ["error"],
+        "no-unused-expressions": ["error"],
+        "no-useless-call": ["error"],
+        "wrap-iife": ["error"],
+        "no-shadow": ["off"],
+        "no-shadow-restricted-names": ["error"],
+
+        // For Node.js & Common.js
+        "global-require": ["error"],
+        "handle-callback-err": ["error"],
+        "no-mixed-requires": ["error"],
+
+        // Style
+        "jsx-quotes": ["error"],
+        "new-parens": ["error"],
+        "no-mixed-spaces-and-tabs": ["error"],
+        "no-trailing-spaces": ["off"],
+        // TODO: eventually, use require-jsfox
+        
+        // ECMAScript 6
+        "constructor-super": ["error"],
+        "no-duplicate-imports": ["error"]
+    }
+}
