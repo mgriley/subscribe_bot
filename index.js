@@ -90,6 +90,11 @@ function clientReceiveMessage(messageEvent) {
             console.log('all: ', names);
         });
     }
+    if (text === 't') {
+        const s = new Date();
+        channels.setUserState(senderId, s, function(err) {
+        });
+    }
 
     sendTextMessage(senderId, text, clientPageToken);
 }
@@ -127,6 +132,20 @@ function serverReceiveMessage(messageEvent) {
                 _.each(listeners, function(id) {
                     sendTextMessage(id, 'greetings', clientPageToken);
                 });
+            }
+        });
+    }
+    if (text === 't') {
+        var d = new Date();
+        channels.setAdminState(senderId, d, function(err) {
+        });
+    }
+    if (text === 'a') {
+        channels.addPermission(senderId, 'mytestc', 'password', function(err) {
+            if (err) {
+                console.error(err);
+            } else {
+                console.log('permission granted');
             }
         });
     }

@@ -34,6 +34,12 @@ module.exports = {
         });
     },
 
+    // callback: func(err)
+    setUserState: function(userId, state, callback) {
+        db.collection('users').updateOne({fbId: userId}, {$set: {state: state}});
+        callback(null);
+    },
+
     // assume valid userId and channelName
     // userId cannot already be in the channel
     // callback: fun(error)
@@ -105,12 +111,24 @@ module.exports = {
             } else {
                 var data = {
                     fbId: adminId,
-                    permissions: [] // list of channel names
+                    permissions: [], // list of channel names
+                    state: 'default'
                 }
                 db.collection('admins').insertOne(data);
                 callback(error, data);
             }
         });
+    },
+
+    // assume that the given admin already has an account
+    // callback: func(err)
+    setAdminState: function(adminId, state, callback) {
+        db.collection('admins').updateOne({fbId: adminId}, {$set: {state: state}}, function(err) {
+            if (err) {
+                console.error(err);
+            }
+        });
+        callback(null);
     },
 
     // callback: func(error)
@@ -142,6 +160,24 @@ module.exports = {
             callback(null, doc.permissions);    
         });
     },
+
+    // callback: func(err)
+    // err occurs if the admin doesn't have the correct permissions
+    addPermission: function(adminId, channelName, channelPassword, callback) {
+        db.collection('channels').findOne({name: channelName}, function(err, channel) {
+            if (channel) {
+                if (channel.password === channelPassword) {
+                    // valid, so add channel to admin's permissions
+                    db.collection('admins').updateOne({fbId: adminId}, {$push: {permissions: channelName}});
+                    callback(null);
+                } else {
+                    callback({error: 'wrong password'});
+                }
+            } else {
+                callback({error: 'no channel with that name'});
+            }
+        });
+    },
     
     // callback: func(error, fbIdList)
     channelListeners: function(adminId, channelName, callback) {
@@ -157,5 +193,5 @@ module.exports = {
                 callback({error: 'permission denied'}, null);
             }
         });
-    }
+    },
 }
