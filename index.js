@@ -6,6 +6,7 @@ const request = require('request');
 const channels = require('./channels.js');
 const _ = require('underscore');
 const validate = require('jsonschema').validate;
+const sprintf = require('sprintf-js').sprintf;
 
 const port = 3003;
 const verifyToken = 'sample_verify_token';
@@ -87,16 +88,15 @@ const dataReq = {
 app.get('/data', function(req, res) {
     console.log('get: /data');
 
+    // validate req
     if (validate(req.body, dataReq).errors) {
         res.status('400').send('invalid req body');
         return;
     }
 
     // get the channel data
-    //const name = data.name;
-    //const password = data.password;
-    const name = 'myname';
-    const password = 'mypassword';
+    const name = data.name;
+    const password = data.password;
     
     channels.channelData(name, password, function(err, data) {
         if (err) {
@@ -127,16 +127,19 @@ function clientReceiveMessage(messageEvent) {
             });
         }
         else if (text === 'all') {
-            channels.allChannels(function(err, names) {
-                var output = "all channels:";
-                for (var i = 0; i < names.length; i++) {
-                    output = output + "\n" + names[i];
+            channels.allChannels(function(err, channels) {
+                const names = _.map(channels, function(c) { return c.name; });
+                var output = sprintf('%-20s%s', 'channel name', '# users\n');
+                for (var i = 0; i < channels.length; i++) {
+                    const c = channels[i];
+                    output += sprintf('%-20s(%5i)\n', c.name, c.numUsers);
                 }
                 sendTextMessage(senderId, output, clientPageToken);
             });
         }
         else {
-            channels.allChannels(function(err, names) {
+            channels.allChannels(function(err, channels) {
+                const names = _.map(channels, function(c) { return c.name; });
                 if (_.contains(doc.channels, text)) {
                     channels.unsubscribe(senderId, text, function(err) {
                     });

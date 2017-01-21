@@ -28,6 +28,7 @@
     "jsonschema": "^1.1.1",
     "mongodb": "^2.2.21",
     "request": "^2.79.0",
+    "sprintf-js": "^1.0.3",
     "underscore": "^1.8.3"
   }
 }

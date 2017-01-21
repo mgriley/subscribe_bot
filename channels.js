@@ -90,12 +90,13 @@ module.exports = {
         });
     },
 
-    // callback: func(err, channelNameArray)
+    // callback: func(err, array of channel objects)
+    // channel: {name, numUsers}
     allChannels: function(callback) {
         db.collection('channels').find({}).toArray(function(error, docs) {
             console.log(docs);
             const names = _.map(docs, function(doc) {
-                return doc.name;
+                return {name: doc.name, numUsers: doc.listeners.length};
             });
             callback(error, names);
         });
