@@ -196,4 +196,27 @@ module.exports = {
             }
         });
     },
+
+    // for the Dashboard:
+
+    // get the analytics data for the given channel
+    // callback: func(err, data)
+    // data: {numUsers: int, 
+    channelData: function(channelName, channelPassword, callback) {
+        // ensure that the channel exists
+        db.collection('channels').findOne({name: channelName}, function(err, channel) {
+            if (channel) {
+                if (channelPassword === channel.password) {
+                    var data = {
+                        numUsers: channel.listeners.length
+                    }
+                    callback(null, data);
+                } else {
+                    callback({error: 'wrong password'});
+                }
+            } else {
+                callback({error: 'no channel with that name'}, null);
+            }
+        });
+    }
 }

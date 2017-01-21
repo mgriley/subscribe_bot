@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const request = require('request');
 const channels = require('./channels.js');
 const _ = require('underscore');
+const validate = require('jsonschema').validate;
 
 const verifyToken = 'sample_verify_token';
 const appSecret = '177c81065bd482943604214dea6221a7'
@@ -56,6 +57,41 @@ app.post('/incoming', function(req, res) {
             });
         });
     }
+});
+
+const dataReq = {
+    type: 'object',
+    properties: {
+        name: {
+            type: 'string'
+        },
+        password: {
+            type: 'string'
+        }
+    },
+    required: ['name', 'password']
+}
+app.get('/data', function(req, res) {
+    console.log('get: /data');
+
+    if (validate(req.body, dataReq).errors) {
+        res.status('400').send('invalid req body');
+        return;
+    }
+
+    // get the channel data
+    //const name = data.name;
+    //const password = data.password;
+    const name = 'myname';
+    const password = 'mypassword';
+    
+    channels.channelData(name, password, function(err, data) {
+        if (err) {
+            res.send(err);
+        } else {
+            res.send(data);
+        }
+    });
 });
 
 function clientReceiveMessage(messageEvent) {
