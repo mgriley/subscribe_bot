@@ -1,1 +1,1 @@
-# suscribe_bot
+# subscribe_bot
