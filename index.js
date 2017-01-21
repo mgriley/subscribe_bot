@@ -4,6 +4,7 @@ const bodyparser = require('body-parser');
 const crypto = require('crypto');
 const request = require('request');
 const channels = require('./channels.js');
+const _ = require('underscore');
 
 const verifyToken = 'sample_verify_token';
 const appSecret = 'b3167d68247c22829e74279ca2921a60'
@@ -69,11 +70,11 @@ function clientReceiveMessage(messageEvent) {
     });
 
     if (text === 's') {
-        channels.subscribe(senderId, 'test', function(err) {
+        channels.subscribe(senderId, 'mytestb', function(err) {
         });
     }
     if (text === 'u') {
-        channels.unsubscribe(senderId, 'test', function(err) {
+        channels.unsubscribe(senderId, 'mytestb', function(err) {
         });
     }
     if (text === 'm') {
@@ -98,6 +99,38 @@ function serverReceiveMessage(messageEvent) {
     const message = messageEvent.message;
     const text = message.text;
     console.log('server received', text);
+
+    channels.getAdminData(senderId, function(err, doc) {
+        console.log(doc);
+    });
+
+    if (text === 'm') {
+        channels.myPermissions(senderId, function(err, channels) {
+            console.log('channels', channels);
+        });
+    }
+    if (text === 'c') {
+        channels.createChannel(senderId, 'mytestb', 'password', function(err) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log('created');
+            }
+        });
+    }
+    if (text === 'l') {
+        channels.channelListeners(senderId, 'mytestb', function(err, listeners) {
+            if (err) {
+                console.error(err);
+            } else {
+                // send a msg to all of the listeners
+                _.each(listeners, function(id) {
+                    sendTextMessage(id, 'greetings', clientPageToken);
+                });
+            }
+        });
+    }
+
     sendTextMessage(senderId, text, adminPageToken);
 }
 

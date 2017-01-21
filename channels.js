@@ -131,9 +131,31 @@ module.exports = {
                 callback(null);
             }
         });
+
+        // add the channel to the admin's permission list
+        db.collection('admins').updateOne({fbId: adminId}, {$push: {permissions: channelName}});
     },
 
+    // callback: func(error, channelNameArray)
     myPermissions: function(adminId, callback) {
-
+        db.collection('admins').findOne({fbId: adminId}, function(error, doc) {
+            callback(null, doc.permissions);    
+        });
+    },
+    
+    // callback: func(error, fbIdList)
+    channelListeners: function(adminId, channelName, callback) {
+        
+        // ensure that the admin has permissions for the given channel
+        db.collection('admins').findOne({fbId: adminId}, function(err, admin) {
+            if (_.contains(admin.permissions, channelName)) {
+                // get all of the listeners
+                db.collection('channels').findOne({name: channelName}, function(err, channel) {
+                    callback(null, channel.listeners);
+                });
+            } else {
+                callback({error: 'permission denied'}, null);
+            }
+        });
     }
 }
