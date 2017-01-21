@@ -76,8 +76,10 @@ function clientReceiveMessage(messageEvent) {
     const senderId = messageEvent.sender.id;
     const message = messageEvent.message;
     const text = message.text;
+    const attachments = message.attachments;
     console.log('client received msg', message);       
     console.log('text', text);
+    console.log('attachments', attachments);
 
     channels.getUserData(senderId, function(err, doc) {
         console.log("this is doc: " + doc);
@@ -90,6 +92,7 @@ function clientReceiveMessage(messageEvent) {
 
         channels.subscribe(senderId, 'yuan', function(err) {
         });
+
 
         
 
@@ -117,10 +120,10 @@ function clientReceiveMessage(messageEvent) {
         }
         else {
             channels.allChannels(function(err, names) {
-                if (_.contains(names, text, 0)) {
-                    channels.unsubscribe(senderId, text, function(err) {
+                if (_.contains(names, text)) {
+                    channels.subscribe(senderId, text, function(err) {
                     });
-                    console.log("you have unsubsribed to" + text);
+                    console.log("you have subsribed to" + text);
                 }
                 else {
                     sendTextMessage(senderId, "Sorry, I don't understand.", clientPageToken);
@@ -132,6 +135,14 @@ function clientReceiveMessage(messageEvent) {
     
 
     //sendTextMessage(senderId, text, clientPageToken);
+
+    if (text) {
+        sendTextMessage(senderId, text, clientPageToken);
+    }
+    if (attachments) {
+        sendImageMessage(senderId, attachments[0].payload.url, clientPageToken);
+    }
+
 }
 
 function serverReceiveMessage(messageEvent) {
@@ -140,8 +151,25 @@ function serverReceiveMessage(messageEvent) {
     const text = message.text;
     console.log('server received', text);
 
+    // SAMPLE
     channels.getAdminData(senderId, function(err, doc) {
         console.log(doc);
+
+        // FOR WILL
+        /*
+        if (doc.state === 'default') {
+            // ... user types 'send channelname'
+            channels.setAdminState(senderId, 'sendnext', function(err) {
+            });
+        } else if (doc.state === 'sendnext') {
+            if (text === 'cancel') {
+                // ...
+                channels.setAdminState(senderId, 'default', function(err) {});
+            } else {
+                // broadcast whatever text or image got sent
+            }
+        }
+        */
     });
 
     if (text === 'm') {
@@ -197,6 +225,23 @@ function sendTextMessage(recipientId, text, pageToken) {
             text: text
         }
     };
+    callSendApi(messageData, pageToken);
+}
+
+function sendImageMessage(recipientId, imageUrl, pageToken) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: 'image',
+                payload: {
+                    url: imageUrl
+                }
+            }
+        }
+    }
     callSendApi(messageData, pageToken);
 }
 
