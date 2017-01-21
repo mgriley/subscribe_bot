@@ -83,29 +83,34 @@ function clientReceiveMessage(messageEvent) {
         console.log(doc);
     });
 
-    if (text === 's') {
+    if (text === 'mine') {
         channels.subscribe(senderId, 'mytestb', function(err) {
         });
     }
-    if (text === 'u') {
-        channels.unsubscribe(senderId, 'mytestb', function(err) {
+    if (text === 'all') {
+
+        channels.createChannel(adminPageId, "yuan", function(err) {
         });
-    }
-    if (text === 'm') {
-        channels.myChannels(senderId, function(err, names) {
-            console.log('mine:', names);
+
+        channels.createChannel(adminPageId, "matt", function(err) {
         });
-    }
-    if (text === 'a') {
+
+
+        console.log("asdfasdfasdfasdfasdfasdfasdfasdfasdf");
         channels.allChannels(function(err, names) {
-            if (err) {
-                console.error(err);
+            var output = "your channels:";
+            for (var i = 0; i < names.length; i++) {
+                output = output + names[i];
             }
-            console.log('all: ', names);
+            console.log("output is " + output);
+            sendTextMessage(senderId, output, clientPageToken);
         });
+    }
+    else {
+
     }
 
-    sendTextMessage(senderId, text, clientPageToken);
+    //sendTextMessage(senderId, text, clientPageToken);
 }
 
 function serverReceiveMessage(messageEvent) {
