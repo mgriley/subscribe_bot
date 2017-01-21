@@ -18,6 +18,7 @@ module.exports = {
     // if the user exists, returns the user's data
     // if the user does not exist, creates the user and returns the data
     // callback: func(error, data)
+    // data: {fbId, channels: list of channel names, state}
     getUserData: function(userId, callback) {
         db.collection('users').findOne({fbId: userId}, function(error, doc) {
             if (doc) {
@@ -104,6 +105,7 @@ module.exports = {
 
     // if the admin does not exist, will create one
     // callback: func(error, data)
+    // data: {fbId, permissions: array of channel names, state}
     getAdminData: function(adminId, callback) {
         db.collection('admins').findOne({fbId: adminId}, function(error, doc) {
             if (doc) {
@@ -146,12 +148,12 @@ module.exports = {
                     listeners: []
                 }
                 db.collection('channels').insertOne(data);
+
+                // add the channel to the admin's permission list
+                db.collection('admins').updateOne({fbId: adminId}, {$push: {permissions: channelName}});
                 callback(null);
             }
         });
-
-        // add the channel to the admin's permission list
-        db.collection('admins').updateOne({fbId: adminId}, {$push: {permissions: channelName}});
     },
 
     // callback: func(error, channelNameArray)
