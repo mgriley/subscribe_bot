@@ -81,40 +81,52 @@ function clientReceiveMessage(messageEvent) {
 
     channels.getUserData(senderId, function(err, doc) {
         console.log("this is doc: " + doc);
+
         channels.createChannel(adminPageId, "yuan", 123, function(err) {
         });
 
         channels.createChannel(adminPageId, "matt", 1342, function(err) {
         });
 
+        channels.subscribe(senderId, 'yuan', function(err) {
+        });
+
+        
+
 
         if (text === 'mine') {
             channels.myChannels(senderId, function(err, channels) {
+                console.log(channels);
                 var output = "your channels: ";
                 for (var i = 0; i < channels.length; i++) {
                     output = output + " " + channels[i];
                 }
-                console.log("output is " + output);
                 sendTextMessage(senderId, output, clientPageToken);
+                output = "your channels: ";
             });
         }
-        if (text === 'all') {
+        else if (text === 'all') {
             console.log("asdfasdfasdfasdfasdfasdfasdfasdfasdf");
             channels.allChannels(function(err, names) {
                 var output = "all channels: ";
                 for (var i = 0; i < names.length; i++) {
                     output = output + " " + names[i];
                 }
-                console.log("output is " + output);
                 sendTextMessage(senderId, output, clientPageToken);
             });
         }
         else {
-            
+            channels.allChannels(function(err, names) {
+                if (_.contains(names, text, 0)) {
+                    channels.unsubscribe(senderId, text, function(err) {
+                    });
+                    console.log("you have unsubsribed to" + text);
+                }
+                else {
+                    sendTextMessage(senderId, "Sorry, I don't understand.", clientPageToken);
+                }
+            });
         }
-
-
-
     });
 
     
