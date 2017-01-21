@@ -1,7 +1,10 @@
+'use strict';
 const express = require('express');
 const bodyparser = require('body-parser');
 const crypto = require('crypto');
 const request = require('request');
+
+const channels = require('./channels.js');
 
 const app = express();
 app.use(bodyparser.json({verify: verifyRequestSignature}));
@@ -29,6 +32,7 @@ app.get('/incoming', function(req, res) {
 app.post('/incoming', function(req, res) {
     const data = req.body;
     console.log('received msg');
+    res.send();
 
     if (data.object === 'page') {
         data.entry.forEach(function(pageEntry) {
@@ -44,7 +48,6 @@ app.post('/incoming', function(req, res) {
             });
         });
     }
-    res.send();
 });
 
 function receiveMessage(messageEvent) {
@@ -53,6 +56,32 @@ function receiveMessage(messageEvent) {
     const text = message.text;
     console.log('received msg', message);       
     console.log('text', text);
+
+    channels.getUserData(senderId, function(err, doc) {
+        console.log(doc);
+    });
+
+    if (text === 's') {
+        channels.subscribe(senderId, 'test', function(err) {
+        });
+    }
+    if (text === 'u') {
+        channels.unsubscribe(senderId, 'test', function(err) {
+        });
+    }
+    if (text === 'm') {
+        channels.myChannels(senderId, function(err, names) {
+            console.log('mine:', names);
+        });
+    }
+    if (text === 'a') {
+        channels.allChannels(function(err, names) {
+            if (err) {
+                console.error(err);
+            }
+            console.log('all: ', names);
+        });
+    }
 
     sendTextMessage(senderId, text);
 }
@@ -76,7 +105,7 @@ function callSendApi(messageData) {
         method: 'POST',
         json: messageData
     }, function(err, resp, body) {
-        if (!err && resp.statusCode == 200) {
+        if (!err && resp.statusCode === 200) {
             console.log('send success');
         } else {
             console.error('send fail', err, resp.statusCode, body);
