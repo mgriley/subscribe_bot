@@ -13,6 +13,8 @@ MongoClient.connect(url, function(err, myDb) {
 
 module.exports = {
 
+    // Listener funcs:
+
     // if the user exists, returns the user's data
     // if the user does not exist, creates the user and returns the data
     // callback: func(error, data)
@@ -89,6 +91,25 @@ module.exports = {
                 return doc.name;
             });
             callback(error, names);
+        });
+    },
+
+    // Admin funcs:
+
+    // if the admin does not exist, will create one
+    // callback: func(error, data)
+    getAdminData: function(adminId, callback) {
+        db.collection('admins').findOne({fbId: adminId}, function(error, doc) {
+            if (doc) {
+                callback(error, doc);
+            } else {
+                var data = {
+                    fbId: adminId,
+                    channels: []
+                }
+                db.collection('admins').insertOne(data);
+                callback(error, data);
+            }
         });
     },
 }

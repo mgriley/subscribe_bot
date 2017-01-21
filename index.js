@@ -11,9 +11,12 @@ app.use(bodyparser.json({verify: verifyRequestSignature}));
 
 const verifyToken = 'sample_verify_token';
 
-const pageAccessToken = 'EAAad9gLAyiYBAJrG7iJiBdCcbDiTA5pHSeJLIUMHDCZC2J2oRQ4JSDBjVPggU0vPKhZAXpr6ZCnqqhHRanuLTqBmiN1aVZCnaC9txZA90JcS1t8HT6ZCR0amrlPAJi4LV3mq2HKjIpGmP5lzR6naLJPCcKZAprDGB4IqXZBKy0onlwZDZD';
 const appSecret = '177c81065bd482943604214dea6221a7'
 
+const clientPageToken = 'EAAad9gLAyiYBAGbKpJCBddUkxXqD0V0N13mvbJDZAmYej0ZC4EoiWfiz8mZACeXvPXcXVGUgAtXI8pduW7KtM3iADFM6ZBaavgNEr0VaeztR5lR3Ybv8bLOXKaZCGzmcgEhB6gIwbtU69wzvmrY6rhNgpKbXWiDPjaZCFfdHQKsAZDZD'
+const adminPageToken = 'EAAad9gLAyiYBAEHjL0LcFZAT0HxRD7KlFuOlZA7anZCtoQxpgVTqCxSVCj7g1w9N8zU3nBGfhUnpYc3PL6ltIcMh7aqVyZCyaA1hZAb7AwYUhtEmzBLSM2HPtK4BdnNMUlSFffG7IkNmC8ACREIaXTlcXWhKoGOiqmd2gW7AbrgZDZD'
+const clientPageId = '1399706990047748'
+const serverPageId = '646470285540501'
 
 // for validation:
 app.get('/incoming', function(req, res) {
@@ -36,12 +39,18 @@ app.post('/incoming', function(req, res) {
 
     if (data.object === 'page') {
         data.entry.forEach(function(pageEntry) {
-            var pageId = pageEntry.id;
+            const pageId = pageEntry.id;
             console.log('page id: ', pageId);
             
             pageEntry.messaging.forEach(function(messageEvent) {
                 if (messageEvent.message) {
-                    receiveMessage(messageEvent);
+                    if (pageId === clientPageId) {
+                        clientReceiveMessage(messageEvent);
+                    } else if (pageId === serverPageId) {
+                        serverReceiveMessage(messageEvent);
+                    } else {
+                        console.error('unknown page id');
+                    }
                 } else {
                     console.log('unknown message event', messageEvent);
                 }
@@ -50,11 +59,11 @@ app.post('/incoming', function(req, res) {
     }
 });
 
-function receiveMessage(messageEvent) {
+function clientReceiveMessage(messageEvent) {
     const senderId = messageEvent.sender.id;
     const message = messageEvent.message;
     const text = message.text;
-    console.log('received msg', message);       
+    console.log('client received msg', message);       
     console.log('text', text);
 
     channels.getUserData(senderId, function(err, doc) {
@@ -83,10 +92,17 @@ function receiveMessage(messageEvent) {
         });
     }
 
-    sendTextMessage(senderId, text);
+    sendTextMessage(senderId, text, clientPageToken);
 }
 
-function sendTextMessage(recipientId, text) {
+function serverReceiveMessage(messageEvent) {
+    const senderId = messageEvent.sender.id;
+    const message = messageEvent.message;
+    const text = message.text;
+    console.log('server received', text);
+}
+
+function sendTextMessage(recipientId, text, pageToken) {
     var messageData = {
         recipient: {
             id: recipientId
@@ -95,13 +111,13 @@ function sendTextMessage(recipientId, text) {
             text: text
         }
     };
-    callSendApi(messageData);
+    callSendApi(messageData, pageToken);
 }
 
-function callSendApi(messageData) {
+function callSendApi(messageData, pageToken) {
     request({
         uri: 'https://graph.facebook.com/v2.6/me/messages',
-        qs: {access_token: pageAccessToken},
+        qs: {access_token: pageToken},
         method: 'POST',
         json: messageData
     }, function(err, resp, body) {
