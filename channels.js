@@ -105,11 +105,35 @@ module.exports = {
             } else {
                 var data = {
                     fbId: adminId,
-                    channels: []
+                    permissions: [] // list of channel names
                 }
                 db.collection('admins').insertOne(data);
                 callback(error, data);
             }
         });
     },
+
+    // callback: func(error)
+    // there is an error if the given channel name already exists
+    createChannel: function(adminId, channelName, channelPassword, callback) {
+        // check that the channel doesn't already exist
+        db.collection('channels').findOne({name: channelName}, function(error, doc) {
+            if (doc) {
+                callback({error: 'that channels already exists'})
+            } else {
+                // create a new channel
+                var data = {
+                    name: channelName,
+                    password: channelPassword,
+                    listeners: []
+                }
+                db.collection('channels').insertOne(data);
+                callback(null);
+            }
+        });
+    },
+
+    myPermissions: function(adminId, callback) {
+
+    }
 }
