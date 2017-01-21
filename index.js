@@ -7,6 +7,7 @@ const channels = require('./channels.js');
 const _ = require('underscore');
 const validate = require('jsonschema').validate;
 
+const port = 3003;
 const verifyToken = 'sample_verify_token';
 const appSecret = '177c81065bd482943604214dea6221a7'
 const clientPageToken = 'EAAad9gLAyiYBAGbKpJCBddUkxXqD0V0N13mvbJDZAmYej0ZC4EoiWfiz8mZACeXvPXcXVGUgAtXI8pduW7KtM3iADFM6ZBaavgNEr0VaeztR5lR3Ybv8bLOXKaZCGzmcgEhB6gIwbtU69wzvmrY6rhNgpKbXWiDPjaZCFfdHQKsAZDZD'
@@ -274,6 +275,6 @@ function verifyRequestSignature(req, res, buf) {
     }
 }
 
-app.listen(3003, function() {
+app.listen(port, function() {
     console.log('started listening');
 });
