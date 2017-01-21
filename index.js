@@ -7,14 +7,13 @@ const channels = require('./channels.js');
 const _ = require('underscore');
 const validate = require('jsonschema').validate;
 
+const port = 3003;
 const verifyToken = 'sample_verify_token';
-const appSecret = '282d470c174fcb717e78d4bef1684ca4'
-//EAAad9gLAyiYBAGbKpJCBddUkxXqD0V0N13mvbJDZAmYej0ZC4EoiWfiz8mZACeXvPXcXVGUgAtXI8pduW7KtM3iADFM6ZBaavgNEr0VaeztR5lR3Ybv8bLOXKaZCGzmcgEhB6gIwbtU69wzvmrY6rhNgpKbXWiDPjaZCFfdHQKsAZDZD
-const clientPageToken = 'EAAMJXqIaPQYBANBGWOgVx26L8vFZCXiIGvHY5IMc1ajGTtU1qkZAoFII3Xu1od1ddRRlrECKXc2xzYhWqHkZCnvRh4lnSDeugepMzfJgapemZBiCzksZCF9fZBLHh8BNKAGF77tiZAlM24XkvqvgJbrm2WIv70xtSiSVZCj8v0ylrgZDZD'
-//EAAad9gLAyiYBAEHjL0LcFZAT0HxRD7KlFuOlZA7anZCtoQxpgVTqCxSVCj7g1w9N8zU3nBGfhUnpYc3PL6ltIcMh7aqVyZCyaA1hZAb7AwYUhtEmzBLSM2HPtK4BdnNMUlSFffG7IkNmC8ACREIaXTlcXWhKoGOiqmd2gW7AbrgZDZD
-const adminPageToken = 'EAAMJXqIaPQYBAALFZAUEBGoNjcEeQlwEXaZBsD4aFgQAAEgHwueGztl862buUyA0bkKcC9QN2Ox6FL7ffZA5jFfh6E7BYp2R1gxYsN0vt7TlYJIcx0tXtFdOKCX1MgH4muV9mmrSBlF5DK6OWXU4xVpc1CxnuQCGtbpQWtjewZDZD'
-const clientPageId = '1018866204924227'
-const adminPageId = '844898795651577'
+const appSecret = '177c81065bd482943604214dea6221a7'
+const clientPageToken = 'EAAad9gLAyiYBAGbKpJCBddUkxXqD0V0N13mvbJDZAmYej0ZC4EoiWfiz8mZACeXvPXcXVGUgAtXI8pduW7KtM3iADFM6ZBaavgNEr0VaeztR5lR3Ybv8bLOXKaZCGzmcgEhB6gIwbtU69wzvmrY6rhNgpKbXWiDPjaZCFfdHQKsAZDZD'
+const adminPageToken = 'EAAad9gLAyiYBAEHjL0LcFZAT0HxRD7KlFuOlZA7anZCtoQxpgVTqCxSVCj7g1w9N8zU3nBGfhUnpYc3PL6ltIcMh7aqVyZCyaA1hZAb7AwYUhtEmzBLSM2HPtK4BdnNMUlSFffG7IkNmC8ACREIaXTlcXWhKoGOiqmd2gW7AbrgZDZD'
+const clientPageId = '1399706990047748'
+const adminPageId = '646470285540501'
 
 // setup server
 const app = express();
@@ -310,6 +309,6 @@ function verifyRequestSignature(req, res, buf) {
     }
 }
 
-app.listen(5000, function() {
+app.listen(port, function() {
     console.log('started listening');
 });
