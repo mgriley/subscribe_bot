@@ -89,7 +89,7 @@ function clientReceiveMessage(messageEvent) {
     }
     if (text === 'all') {
 
-        channels.createChannel(adminPageId, "yuan", function(err) {
+        channels.createChannel(adminPageId, "yuan", 123, function(err) {
         });
 
         channels.createChannel(adminPageId, "matt", function(err) {
@@ -105,9 +105,6 @@ function clientReceiveMessage(messageEvent) {
             console.log("output is " + output);
             sendTextMessage(senderId, output, clientPageToken);
         });
-    }
-    else {
-
     }
 
     //sendTextMessage(senderId, text, clientPageToken);
@@ -146,6 +143,20 @@ function serverReceiveMessage(messageEvent) {
                 _.each(listeners, function(id) {
                     sendTextMessage(id, 'greetings', clientPageToken);
                 });
+            }
+        });
+    }
+    if (text === 't') {
+        var d = new Date();
+        channels.setAdminState(senderId, d, function(err) {
+        });
+    }
+    if (text === 'a') {
+        channels.addPermission(senderId, 'mytestc', 'password', function(err) {
+            if (err) {
+                console.error(err);
+            } else {
+                console.log('permission granted');
             }
         });
     }
