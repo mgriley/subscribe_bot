@@ -62,8 +62,10 @@ function clientReceiveMessage(messageEvent) {
     const senderId = messageEvent.sender.id;
     const message = messageEvent.message;
     const text = message.text;
+    const attachments = message.attachments;
     console.log('client received msg', message);       
     console.log('text', text);
+    console.log('attachments', attachments);
 
     channels.getUserData(senderId, function(err, doc) {
         console.log(doc);
@@ -96,7 +98,12 @@ function clientReceiveMessage(messageEvent) {
         });
     }
 
-    sendTextMessage(senderId, text, clientPageToken);
+    if (text) {
+        sendTextMessage(senderId, text, clientPageToken);
+    }
+    if (attachments) {
+        sendImageMessage(senderId, attachments[0].payload.url, clientPageToken);
+    }
 }
 
 function serverReceiveMessage(messageEvent) {
@@ -105,8 +112,25 @@ function serverReceiveMessage(messageEvent) {
     const text = message.text;
     console.log('server received', text);
 
+    // SAMPLE
     channels.getAdminData(senderId, function(err, doc) {
         console.log(doc);
+
+        // FOR WILL
+        /*
+        if (doc.state === 'default') {
+            // ... user types 'send channelname'
+            channels.setAdminState(senderId, 'sendnext', function(err) {
+            });
+        } else if (doc.state === 'sendnext') {
+            if (text === 'cancel') {
+                // ...
+                channels.setAdminState(senderId, 'default', function(err) {});
+            } else {
+                // broadcast whatever text or image got sent
+            }
+        }
+        */
     });
 
     if (text === 'm') {
@@ -174,7 +198,7 @@ function sendImageMessage(recipientId, imageUrl, pageToken) {
             attachment: {
                 type: 'image',
                 payload: {
-                    url: imageURL
+                    url: imageUrl
                 }
             }
         }
