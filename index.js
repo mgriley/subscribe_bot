@@ -83,67 +83,64 @@ function clientReceiveMessage(messageEvent) {
 
     channels.getUserData(senderId, function(err, doc) {
         console.log("this is doc: " + doc);
-
-        channels.createChannel(adminPageId, "yuan", 123, function(err) {
-        });
-
-        channels.createChannel(adminPageId, "matt", 1342, function(err) {
-        });
-
-        channels.subscribe(senderId, 'yuan', function(err) {
-        });
-
-
-        
-
-
         if (text === 'mine') {
             channels.myChannels(senderId, function(err, channels) {
                 console.log(channels);
                 var output = "your channels: ";
                 for (var i = 0; i < channels.length; i++) {
-                    output = output + " " + channels[i];
+                    output = output + "\n" + channels[i];
                 }
                 sendTextMessage(senderId, output, clientPageToken);
                 output = "your channels: ";
             });
         }
         else if (text === 'all') {
-            console.log("asdfasdfasdfasdfasdfasdfasdfasdfasdf");
             channels.allChannels(function(err, names) {
                 var output = "all channels: ";
                 for (var i = 0; i < names.length; i++) {
-                    output = output + " " + names[i];
+                    output = output + "\n" + names[i];
                 }
                 sendTextMessage(senderId, output, clientPageToken);
             });
         }
         else {
+
+
+/*
+            if (_.contains(doc.channels, text)) {
+                console.log("gdasdfaew");
+                channels.unsubscribe(senderId, text, function(err) {
+                });
+            }
+
+            else {
+                sendTextMessage(senderId, "Sorry, I don't understand.", clientPageToken);
+            }
+*/
+
             channels.allChannels(function(err, names) {
-                if (_.contains(names, text)) {
+                if (_.contains(doc.channels, text)) {
+                    channels.unsubscribe(senderId, text, function(err) {
+                    });
+                    sendTextMessage(senderId, "you just unsubscribed from " + text + ".", clientPageToken);
+                }
+                else if (_.contains(names, text)) {
                     channels.subscribe(senderId, text, function(err) {
                     });
                     console.log("you have subsribed to" + text);
+                    sendTextMessage(senderId, "you just subscribed to " + text + ".", clientPageToken);
                 }
                 else {
-                    sendTextMessage(senderId, "Sorry, I don't understand.", clientPageToken);
+                    sendTextMessage(senderId, instructions, clientPageToken);
                 }
             });
+            
         }
     });
 
-    
-
-    //sendTextMessage(senderId, text, clientPageToken);
-
-    if (text) {
-        sendTextMessage(senderId, text, clientPageToken);
-    }
-    if (attachments) {
-        sendImageMessage(senderId, attachments[0].payload.url, clientPageToken);
-    }
-
 }
+
+var instructions = "Sorry, I don't understand. The commands are as follows: \n 1. type channel name to subscribe and type it again to unsubscribe \n 2. \"mine\": see all your subscribed channels \n 3. \"all\": see all available channels"; 
 
 function serverReceiveMessage(messageEvent) {
     const senderId = messageEvent.sender.id;
