@@ -176,7 +176,7 @@ function clientReceiveMessage(messageEvent) {
 
 }
 
-var instructions = "Sorry, I don't understand. The commands are as follows: \n 1. type channel name to subscribe and type it again to unsubscribe \n 2. \"mine\": see all your subscribed channels \n 3. \"all\": see all available channels"; 
+const instructions = "Sorry, I don't understand. The commands are as follows: \n 1. type channel name to subscribe and type it again to unsubscribe \n 2. \"mine\": see all your subscribed channels \n 3. \"all\": see all available channels"; 
 
 function serverReceiveMessage(messageEvent) {
     const senderId = messageEvent.sender.id;
