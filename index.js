@@ -165,6 +165,23 @@ function sendTextMessage(recipientId, text, pageToken) {
     callSendApi(messageData, pageToken);
 }
 
+function sendImageMessage(recipientId, imageUrl, pageToken) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: 'image',
+                payload: {
+                    url: imageURL
+                }
+            }
+        }
+    }
+    callSendApi(messageData, pageToken);
+}
+
 function callSendApi(messageData, pageToken) {
     request({
         uri: 'https://graph.facebook.com/v2.6/me/messages',

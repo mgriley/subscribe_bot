@@ -148,12 +148,12 @@ module.exports = {
                     listeners: []
                 }
                 db.collection('channels').insertOne(data);
+
+                // add the channel to the admin's permission list
+                db.collection('admins').updateOne({fbId: adminId}, {$push: {permissions: channelName}});
                 callback(null);
             }
         });
-
-        // add the channel to the admin's permission list
-        db.collection('admins').updateOne({fbId: adminId}, {$push: {permissions: channelName}});
     },
 
     // callback: func(error, channelNameArray)
