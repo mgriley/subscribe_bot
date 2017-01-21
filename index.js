@@ -80,32 +80,44 @@ function clientReceiveMessage(messageEvent) {
     console.log('text', text);
 
     channels.getUserData(senderId, function(err, doc) {
-        console.log(doc);
-    });
-
-    if (text === 'mine') {
-        channels.subscribe(senderId, 'mytestb', function(err) {
-        });
-    }
-    if (text === 'all') {
-
+        console.log("this is doc: " + doc);
         channels.createChannel(adminPageId, "yuan", 123, function(err) {
         });
 
-        channels.createChannel(adminPageId, "matt", function(err) {
+        channels.createChannel(adminPageId, "matt", 1342, function(err) {
         });
 
 
-        console.log("asdfasdfasdfasdfasdfasdfasdfasdfasdf");
-        channels.allChannels(function(err, names) {
-            var output = "your channels:";
-            for (var i = 0; i < names.length; i++) {
-                output = output + names[i];
-            }
-            console.log("output is " + output);
-            sendTextMessage(senderId, output, clientPageToken);
-        });
-    }
+        if (text === 'mine') {
+            channels.myChannels(senderId, function(err, channels) {
+                var output = "your channels: ";
+                for (var i = 0; i < channels.length; i++) {
+                    output = output + " " + channels[i];
+                }
+                console.log("output is " + output);
+                sendTextMessage(senderId, output, clientPageToken);
+            });
+        }
+        if (text === 'all') {
+            console.log("asdfasdfasdfasdfasdfasdfasdfasdfasdf");
+            channels.allChannels(function(err, names) {
+                var output = "all channels: ";
+                for (var i = 0; i < names.length; i++) {
+                    output = output + " " + names[i];
+                }
+                console.log("output is " + output);
+                sendTextMessage(senderId, output, clientPageToken);
+            });
+        }
+        else {
+            
+        }
+
+
+
+    });
+
+    
 
     //sendTextMessage(senderId, text, clientPageToken);
 }
