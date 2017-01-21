@@ -15,10 +15,10 @@ const adminPageId = '974674739330325'
 
 // setup server
 const app = express();
-app.use(bodyparser.json({verify: verifyRequestSignature}));
+app.use(bodyparser.json({ verify: verifyRequestSignature }));
 
 // for validation:
-app.get('/incoming', function(req, res) {
+app.get('/incoming', function (req, res) {
     // valid the endpoint
     console.log('received req');
     if (req.query['hub.mode'] === 'subscribe'
@@ -31,17 +31,17 @@ app.get('/incoming', function(req, res) {
     }
 });
 
-app.post('/incoming', function(req, res) {
+app.post('/incoming', function (req, res) {
     const data = req.body;
     console.log('received msg');
     res.send();
 
     if (data.object === 'page') {
-        data.entry.forEach(function(pageEntry) {
+        data.entry.forEach(function (pageEntry) {
             const pageId = pageEntry.id;
             console.log('page id: ', pageId);
-            
-            pageEntry.messaging.forEach(function(messageEvent) {
+
+            pageEntry.messaging.forEach(function (messageEvent) {
                 if (messageEvent.message) {
                     if (pageId === clientPageId) {
                         clientReceiveMessage(messageEvent);
@@ -62,28 +62,28 @@ function clientReceiveMessage(messageEvent) {
     const senderId = messageEvent.sender.id;
     const message = messageEvent.message;
     const text = message.text;
-    console.log('client received msg', message);       
+    console.log('client received msg', message);
     console.log('text', text);
 
-    channels.getUserData(senderId, function(err, doc) {
+    channels.getUserData(senderId, function (err, doc) {
         console.log(doc);
     });
 
     if (text === 's') {
-        channels.subscribe(senderId, 'mytestb', function(err) {
+        channels.subscribe(senderId, 'mytestb', function (err) {
         });
     }
     if (text === 'u') {
-        channels.unsubscribe(senderId, 'mytestb', function(err) {
+        channels.unsubscribe(senderId, 'mytestb', function (err) {
         });
     }
     if (text === 'm') {
-        channels.myChannels(senderId, function(err, names) {
+        channels.myChannels(senderId, function (err, names) {
             console.log('mine:', names);
         });
     }
     if (text === 'a') {
-        channels.allChannels(function(err, names) {
+        channels.allChannels(function (err, names) {
             if (err) {
                 console.error(err);
             }
@@ -97,41 +97,55 @@ function clientReceiveMessage(messageEvent) {
 function serverReceiveMessage(messageEvent) {
     const senderId = messageEvent.sender.id;
     const message = messageEvent.message;
-    const text = message.text;
-    console.log('server received', text);
+    const text = message.text.split(" ");
+    console.log('server received', message.text);
 
-    channels.getAdminData(senderId, function(err, doc) {
+    channels.getAdminData(senderId, function (err, doc) {
         console.log(doc);
     });
 
-    if (text === 'm') {
-        channels.myPermissions(senderId, function(err, channels) {
-            console.log('channels', channels);
-        });
-    }
-    if (text === 'c') {
-        channels.createChannel(senderId, 'mytestb', 'password', function(err) {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log('created');
-            }
-        });
-    }
-    if (text === 'l') {
-        channels.channelListeners(senderId, 'mytestb', function(err, listeners) {
-            if (err) {
-                console.error(err);
-            } else {
-                // send a msg to all of the listeners
-                _.each(listeners, function(id) {
-                    sendTextMessage(id, 'greetings', clientPageToken);
-                });
-            }
-        });
-    }
+    var response = "";
 
-    sendTextMessage(senderId, text, adminPageToken);
+    if (text.length === 3) {
+        const command = text[0];
+        const param1 = text[1];
+        const param2 = text[2];
+
+        if (text[0] === 'm') {
+            channels.myPermissions(senderId, function (err, channels) {
+                console.log('channels', channels);
+            });
+        }
+
+        if (text[0] === 'create') {
+            channels.createChannel(senderId, param1, param2, function (err) {
+                if (err) {
+                    //console.log(err);
+                    response = err;
+                } else {
+                    response = "Created";
+                }
+            });
+        }
+        
+        if (text[0] === 'l') {
+            channels.channelListeners(senderId, 'mytestb', function (err, listeners) {
+                if (err) {
+                    console.error(err);
+                } else {
+                    // send a msg to all of the listeners
+                    _.each(listeners, function (id) {
+                        sendTextMessage(id, 'greetings', clientPageToken);
+                    });
+                }
+            });
+        }
+        if (text[0] === 'test') {
+            console.log('test type');
+        }
+
+        sendTextMessage(senderId, "heard", adminPageToken);
+    }
 }
 
 function sendTextMessage(recipientId, text, pageToken) {
@@ -149,10 +163,10 @@ function sendTextMessage(recipientId, text, pageToken) {
 function callSendApi(messageData, pageToken) {
     request({
         uri: 'https://graph.facebook.com/v2.6/me/messages',
-        qs: {access_token: pageToken},
+        qs: { access_token: pageToken },
         method: 'POST',
         json: messageData
-    }, function(err, resp, body) {
+    }, function (err, resp, body) {
         if (!err && resp.statusCode === 200) {
             console.log('send success');
         } else {
@@ -178,6 +192,6 @@ function verifyRequestSignature(req, res, buf) {
     }
 }
 
-app.listen(5000, function() {
+app.listen(5000, function () {
     console.log('started listening');
 });
