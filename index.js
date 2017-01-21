@@ -109,14 +109,12 @@ function serverReceiveMessage(messageEvent) {
         console.log(doc);
     });
 
-<<<<<<< HEAD
     var response = "";
 
     if (text.length === 3) {
         const command = text[0];
         const param1 = text[1];
         const param2 = text[2];
->>>>>>> master
 
         if (text[0] === 'm') {
             channels.myPermissions(senderId, function (err, channels) {
