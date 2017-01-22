@@ -1,0 +1,9 @@
+module.exports = {
+    port: 3003,
+    verifyToken: '',
+    appSecret: '',
+    clientPageToken: '',
+    adminPageToken: '',
+    clientPageId: '',
+    adminPageId: ''
+}

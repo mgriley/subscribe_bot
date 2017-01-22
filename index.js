@@ -4,17 +4,19 @@ const bodyparser = require('body-parser');
 const crypto = require('crypto');
 const request = require('request');
 const channels = require('./channels.js');
+const config = require('./config.js');
 const _ = require('underscore');
 const validate = require('jsonschema').validate;
 const sprintf = require('sprintf-js').sprintf;
 
-const port = 3003;
-const verifyToken = 'sample_verify_token';
-const appSecret = '177c81065bd482943604214dea6221a7'
-const clientPageToken = 'EAAad9gLAyiYBAGbKpJCBddUkxXqD0V0N13mvbJDZAmYej0ZC4EoiWfiz8mZACeXvPXcXVGUgAtXI8pduW7KtM3iADFM6ZBaavgNEr0VaeztR5lR3Ybv8bLOXKaZCGzmcgEhB6gIwbtU69wzvmrY6rhNgpKbXWiDPjaZCFfdHQKsAZDZD'
-const adminPageToken = 'EAAad9gLAyiYBAEHjL0LcFZAT0HxRD7KlFuOlZA7anZCtoQxpgVTqCxSVCj7g1w9N8zU3nBGfhUnpYc3PL6ltIcMh7aqVyZCyaA1hZAb7AwYUhtEmzBLSM2HPtK4BdnNMUlSFffG7IkNmC8ACREIaXTlcXWhKoGOiqmd2gW7AbrgZDZD'
-const clientPageId = '1399706990047748'
-const adminPageId = '646470285540501'
+// load config
+const port = config.port;
+const verifyToken = config.verifyToken
+const appSecret = config.appSecret
+const clientPageToken = config.clientPageToken
+const adminPageToken = config.adminPageToken
+const clientPageId = config.clientPageId
+const adminPageId = config.adminPageId
 
 const adminInstructions = "I don't understand, try these:\n\n" +
     "1. \"create name password\"\ncreates a channel with given name and password\n\n" +
