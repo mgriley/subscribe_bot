@@ -8,32 +8,28 @@ const _ = require('underscore');
 const validate = require('jsonschema').validate;
 const sprintf = require('sprintf-js').sprintf;
 
-const port = 3003;
+const port = 5000;
 const verifyToken = 'sample_verify_token';
-const appSecret = '177c81065bd482943604214dea6221a7'
-const clientPageToken = 'EAAad9gLAyiYBAGbKpJCBddUkxXqD0V0N13mvbJDZAmYej0ZC4EoiWfiz8mZACeXvPXcXVGUgAtXI8pduW7KtM3iADFM6ZBaavgNEr0VaeztR5lR3Ybv8bLOXKaZCGzmcgEhB6gIwbtU69wzvmrY6rhNgpKbXWiDPjaZCFfdHQKsAZDZD'
-const adminPageToken = 'EAAad9gLAyiYBAEHjL0LcFZAT0HxRD7KlFuOlZA7anZCtoQxpgVTqCxSVCj7g1w9N8zU3nBGfhUnpYc3PL6ltIcMh7aqVyZCyaA1hZAb7AwYUhtEmzBLSM2HPtK4BdnNMUlSFffG7IkNmC8ACREIaXTlcXWhKoGOiqmd2gW7AbrgZDZD'
-const clientPageId = '1399706990047748'
-const adminPageId = '646470285540501'
+const appSecret = 'b3167d68247c22829e74279ca2921a60'
+const clientPageToken = 'EAAQyl3PaDKIBAAhvXnVQ7aZBY43qIpX1XPN65qCmmo7P8GOeQ34UmkV1nO3Tw954ZA7jsLsbnABg8A7hKAw5cBqBv0eNThSZBG8WN3KmdDqUtOJRrhJHWahDzxqf2QH3NYYOdymtDf8rqbAsJiAxtmO7WLRKOJEiD3ZCKFC1MAZDZD'
+const adminPageToken = 'EAAQyl3PaDKIBAIK3qsGBZCuXgYtCYNn677p4QCYHnr5nNKIMH7IYhgpbrXetQPeBxi1GKZASG2dIaVBAXsD6kKG8zTbx7xQxpBLyh0cfLBzsgyYK2ZAuKL4ViMvHotrqmmbrUi8Qh25Lef7Ii5L28qL6nk5pJpwU8kAtiSYswZDZD'
+const clientPageId = '733259543504701'
+const adminPageId = '974674739330325'
+
+const adminInstructions = "Sorry, I don't understand. The following are the commands I know: \n" +
+    "1. \"create\": create a new channel by providing channel name and password" +
+    "\n 2. \"add\": add current admin to channel by providing corresponding " +
+    "channel name and password \n 3. \"send\" broadcast a message by providing " +
+    "name and message \n 4. \"mine\": list all your channel subscriptions";
+
+const clientInstructions = "Sorry, I don't understand. The commands are as follows: \n 1. type channel name to subscribe and type it again to unsubscribe \n 2. \"mine\": see all your subscribed channels \n 3. \"all\": see all available channels";
 
 // setup server
 const app = express();
-app.use(bodyparser.json({verify: verifyRequestSignature}));
-
-/*
-app.get('/webhook/', function(req, res) {
-  if (req.query['hub.verify_token'] === "yuan") {
-    console.log("Validating webhook");
-    res.send(req.query['hub.challenge']);
-  } else {
-    console.error("Failed validation. Make sure the validation tokens match.");
-    res.sendStatus(403);          
-  }  
-});
-*/
+app.use(bodyparser.json({ verify: verifyRequestSignature }));
 
 // for validation:
-app.get('/incoming', function(req, res) {
+app.get('/incoming', function (req, res) {
     // valid the endpoint
     console.log('received req');
     if (req.query['hub.mode'] === 'subscribe'
@@ -46,17 +42,17 @@ app.get('/incoming', function(req, res) {
     }
 });
 
-app.post('/incoming', function(req, res) {
+app.post('/incoming', function (req, res) {
     const data = req.body;
     console.log('received msg');
     res.send();
 
     if (data.object === 'page') {
-        data.entry.forEach(function(pageEntry) {
+        data.entry.forEach(function (pageEntry) {
             const pageId = pageEntry.id;
             console.log('page id: ', pageId);
-            
-            pageEntry.messaging.forEach(function(messageEvent) {
+
+            pageEntry.messaging.forEach(function (messageEvent) {
                 if (messageEvent.message) {
                     if (pageId === clientPageId) {
                         clientReceiveMessage(messageEvent);
@@ -112,7 +108,7 @@ function clientReceiveMessage(messageEvent) {
     const message = messageEvent.message;
     const text = message.text;
     const attachments = message.attachments;
-    console.log('client received msg', message);       
+    console.log('client received msg', message);
     console.log('text', text);
     console.log('attachments', attachments);
 
@@ -152,25 +148,23 @@ function clientReceiveMessage(messageEvent) {
                     sendTextMessage(senderId, "you just subscribed to " + text, clientPageToken);
                 }
                 else {
-                    sendTextMessage(senderId, instructions, clientPageToken);
+                    sendTextMessage(senderId, clientInstructions, clientPageToken);
                 }
             });
             
         }
     });
-
 }
-
-const instructions = "i don't understand, here's some help:\n 1. type a channel name to subscribe and type it again to unsubscribe \n 2. \"mine\": see the channels you're listening to \n 3. \"all\": see all available channels"; 
 
 function serverReceiveMessage(messageEvent) {
     const senderId = messageEvent.sender.id;
     const message = messageEvent.message;
-    const text = message.text;
-    console.log('server received', text);
+    const rawText = message.text;
+    const text = rawText.split(" ");
+    console.log('server received', message.text);
 
     // SAMPLE
-    channels.getAdminData(senderId, function(err, doc) {
+    channels.getAdminData(senderId, function (err, doc) {
         console.log(doc);
 
         // FOR WILL
@@ -190,48 +184,62 @@ function serverReceiveMessage(messageEvent) {
         */
     });
 
-    if (text === 'm') {
-        channels.myPermissions(senderId, function(err, channels) {
-            console.log('channels', channels);
-        });
-    }
-    if (text === 'c') {
-        channels.createChannel(senderId, 'mytestb', 'password', function(err) {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log('created');
-            }
-        });
-    }
-    if (text === 'l') {
-        channels.channelListeners(senderId, 'mytestb', function(err, listeners) {
-            if (err) {
-                console.error(err);
-            } else {
-                // send a msg to all of the listeners
-                _.each(listeners, function(id) {
-                    sendTextMessage(id, 'greetings', clientPageToken);
-                });
-            }
-        });
-    }
-    if (text === 't') {
-        var d = new Date();
-        channels.setAdminState(senderId, d, function(err) {
-        });
-    }
-    if (text === 'a') {
-        channels.addPermission(senderId, 'mytestc', 'password', function(err) {
-            if (err) {
-                console.error(err);
-            } else {
-                console.log('permission granted');
-            }
-        });
-    }
+    var response = "default";
+    const command = text[0].toLowerCase();
 
-    sendTextMessage(senderId, text, adminPageToken);
+    if (text.length === 1 && command === 'mine') {
+        channels.myPermissions(senderId, function (err, channels) {
+            console.log('channels', channels);
+            response = "Your channels: " + channels;
+            sendTextMessage(senderId, response, adminPageToken);
+        });
+    } else if (text.length === 3) {
+
+        const param1 = text[1];
+        const param2 = text[2];
+
+        if (command === 'create') {
+            channels.createChannel(senderId, param1, param2, function (err) {
+                if (err) {
+                    console.log(err);
+                    response = "Channel with the name \"" + param1 + "\" already exists";
+                } else {
+                    response = "Created channel \"" + param1 + "\" with password \"" + param2 + "\"";
+                }
+                sendTextMessage(senderId, response, adminPageToken);
+            });
+        } else if (command === 'add') {
+            channels.addPermission(senderId, param1, param2, function (err) {
+                if (err) {
+                    if (err.error = 'wrong password') {
+                        response = "Incorrect password for channel \"" + param1 + "\"";
+                    } else {
+                        response = "No channel with that name";
+                    }
+                } else {
+                    response = "Permission added";
+                }
+                sendTextMessage(senderId, response, adminPageToken);
+            });
+        } else if (command === 'send') {
+            channels.channelListeners(senderId, param1, function (err, listeners) {
+                if (err) {
+                    response = "You do not have the required permissions"
+                } else {
+                    // send a msg to all of the listeners
+                    _.each(listeners, function (id) {
+                        sendTextMessage(id, rawText.indexOf(param2), clientPageToken);
+                    });
+                    response = "Successfully sent!";
+                }
+                sendTextMessage(senderId, response, adminPageToken);
+            });
+        } else {
+            sendTextMessage(senderId, adminInstructions, adminPageToken);
+        }
+    } else {
+        sendTextMessage(senderId, adminInstructions, adminPageToken);
+    }
 }
 
 function sendTextMessage(recipientId, text, pageToken) {
@@ -266,10 +274,10 @@ function sendImageMessage(recipientId, imageUrl, pageToken) {
 function callSendApi(messageData, pageToken) {
     request({
         uri: 'https://graph.facebook.com/v2.6/me/messages',
-        qs: {access_token: pageToken},
+        qs: { access_token: pageToken },
         method: 'POST',
         json: messageData
-    }, function(err, resp, body) {
+    }, function (err, resp, body) {
         if (!err && resp.statusCode === 200) {
             console.log('send success');
         } else {
