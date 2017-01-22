@@ -127,7 +127,7 @@ function clientReceiveMessage(messageEvent) {
         else if (text === 'all') {
             channels.allChannels(function(err, allChannels) {
                 const names = _.map(allChannels, function(c) { return c.name; });
-                var output = sprintf('%-20s%s', 'channel name', '# users\n\n');
+                var output = sprintf('channel name and # listeners:\n\n');
                 for (var i = 0; i < allChannels.length; i++) {
                     const c = allChannels[i];
                     output += sprintf('%s (%i)\n', c.name, c.numUsers);
@@ -166,16 +166,17 @@ function handleDefaultState(senderId, message, doc) {
     if (text.length === 1 && command === 'mine') {
         channels.myPermissions(senderId, function (err, channels) {
             console.log('channels', channels);
-            response = "Your channels: " + channels;
+            const listString = _.reduce(channels, function(s, channel) { return s + channel + '\n'; }, '');
+            response = "your channels:\n" + listString;
             sendTextMessage(senderId, response, adminPageToken);
         });
     } else if (command === 'create' && text.length === 3) {
         channels.createChannel(senderId, text[1], text[2], function (err) {
             if (err) {
                 console.log(err);
-                response = "Channel with the name \"" + text[1] + "\" already exists";
+                response = "channel with the name \"" + text[1] + "\" already exists";
             } else {
-                response = "Created channel \"" + text[1] + "\" with password \"" + text[2] + "\"";
+                response = "created channel \"" + text[1] + "\" with password \"" + text[2] + "\"";
             }
             sendTextMessage(senderId, response, adminPageToken);
         });
@@ -183,12 +184,12 @@ function handleDefaultState(senderId, message, doc) {
         channels.addPermission(senderId, text[1], text[2], function (err) {
             if (err) {
                 if (err.error === 'wrong password') {
-                    response = "Incorrect password for channel \"" + text[1] + "\"";
+                    response = "incorrect password for channel \"" + text[1] + "\"";
                 } else {
-                    response = "No channel with that name";
+                    response = "no channel with that name";
                 }
             } else {
-                response = "Permission added";
+                response = "permission added";
             }
             sendTextMessage(senderId, response, adminPageToken);
         });
@@ -223,7 +224,7 @@ function handleSendState(senderId, message, doc) {
             if (message.text) {
                 console.log('message is text type');
                 sendFunc = function(id) {
-                    const msg = sprintf("%s:\n%s", channelName, message.text);
+                    const msg = sprintf("%s sends:\n%s", channelName, message.text);
                     sendTextMessage(id, msg, clientPageToken);
                 }
             } else if (message.attachments) {
@@ -233,7 +234,7 @@ function handleSendState(senderId, message, doc) {
                 if (photo.type === 'image') {
                     sendFunc = function(id) {
                         // send a text to tell who it's from, and forward the photo
-                        const msg = sprintf("%s", channelName);
+                        const msg = sprintf("%s sends:", channelName);
                         sendTextMessage(id, msg, clientPageToken);
                         const imageUrl = photo.payload.url;
                         sendImageMessage(id, imageUrl, clientPageToken);
