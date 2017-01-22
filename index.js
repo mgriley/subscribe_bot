@@ -114,28 +114,28 @@ function clientReceiveMessage(messageEvent) {
 
     channels.getUserData(senderId, function(err, doc) {
         if (text === 'mine') {
-            channels.myChannels(senderId, function(err, channels) {
+            channels.myChannels(senderId, function(err, myChannels) {
                 var output = "your listening to:";
-                for (var i = 0; i < channels.length; i++) {
-                    output = output + "\n" + channels[i];
+                for (var i = 0; i < myChannels.length; i++) {
+                    output = output + "\n" + myChannels[i];
                 }
                 sendTextMessage(senderId, output, clientPageToken);
             });
         }
         else if (text === 'all') {
-            channels.allChannels(function(err, channels) {
-                const names = _.map(channels, function(c) { return c.name; });
+            channels.allChannels(function(err, allChannels) {
+                const names = _.map(allChannels, function(c) { return c.name; });
                 var output = sprintf('%-20s%s', 'channel name', '# users\n\n');
-                for (var i = 0; i < channels.length; i++) {
-                    const c = channels[i];
+                for (var i = 0; i < allChannels.length; i++) {
+                    const c = allChannels[i];
                     output += sprintf('%-20s(%i)\n', c.name, c.numUsers);
                 }
                 sendTextMessage(senderId, output, clientPageToken);
             });
         }
         else {
-            channels.allChannels(function(err, channels) {
-                const names = _.map(channels, function(c) { return c.name; });
+            channels.allChannels(function(err, allChannels) {
+                const names = _.map(allChannels, function(c) { return c.name; });
                 if (_.contains(doc.channels, text)) {
                     channels.unsubscribe(senderId, text, function(err) {
                     });
