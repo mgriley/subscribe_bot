@@ -16,13 +16,15 @@ const adminPageToken = 'EAAad9gLAyiYBAEHjL0LcFZAT0HxRD7KlFuOlZA7anZCtoQxpgVTqCxS
 const clientPageId = '1399706990047748'
 const adminPageId = '646470285540501'
 
-const adminInstructions = "sorry, I don't understand, try these: \n" +
-    "1. \"create name password\"\nto create a channel with given name and password\n\n" +
-    "2. \"add name password\"\nto get permission to send to an existing channel\n\n" +
-    "3. \"send name my message\"\nto send a message to the channel with the given name (must be one of your channels)\n\n" +
-    "4. \"mine\"\nfor list of the channels you can send to";
+const adminInstructions = "I don't understand, try these:\n\n" +
+    "1. \"create name password\"\ncreates a channel with given name and password\n\n" +
+    "2. \"add name password\"\nfor permission to send to an existing channel\n\n" +
+    "3. \"send name my message\"\nto send a message to your channel with the given name\n\n" +
+    "4. \"mine\"\nfor list of the channels you can send to\n\n" +
+    "examples:\n\"create pandas a78hyrw\"\n\"add pandas a78hyrw\"\n\"send pandas welcome to my feed about pandas\"";
 
-const clientInstructions = "Sorry, I don't understand. The commands are as follows: \n 1. type channel name to subscribe and type it again to unsubscribe \n 2. \"mine\": see all your subscribed channels \n 3. \"all\": see all available channels";
+const clientInstructions = "I don't understand, try these:\n\n" + 
+"1. type channel name to toggle subscribe/unsubscribe\n\n2. \"mine\": see all your subscribed channels\n\n3. \"all\": see all available channels";
 
 // setup server
 const app = express();
@@ -128,7 +130,7 @@ function clientReceiveMessage(messageEvent) {
                 var output = sprintf('%-20s%s', 'channel name', '# users\n\n');
                 for (var i = 0; i < allChannels.length; i++) {
                     const c = allChannels[i];
-                    output += sprintf('%-20s(%i)\n', c.name, c.numUsers);
+                    output += sprintf('%s (%i)\n', c.name, c.numUsers);
                 }
                 sendTextMessage(senderId, output, clientPageToken);
             });
@@ -198,15 +200,17 @@ function serverReceiveMessage(messageEvent) {
                 sendTextMessage(senderId, response, adminPageToken);
             });
         } else if (command === 'send' && text.length >= 3) {
-            channels.channelListeners(senderId, text[1], function (err, listeners) {
+            const channelName = text[1];
+            channels.channelListeners(senderId, channelName, function (err, listeners) {
                 if (err) {
-                    response = sprintf('\"%s\" is not one your channels. type \"help\" to see how to create or add a channel', text[1]);
+                    response = sprintf('\"%s\" is not one your channels. type \"help\" to see how to create or add a channel', channelName);
                 } else {
                     // send a msg to all of the listeners
                     _.each(listeners, function (id) {
-                        sendTextMessage(id, rawText.slice(rawText.indexOf(text[2])), clientPageToken);
+                        const msg = sprintf("%s:\n%s", channelName, rawText.slice(rawText.indexOf(text[2])));
+                        sendTextMessage(id, msg, clientPageToken);
                     });
-                    response = "Successfully sent!";
+                    response = "sent!";
                 }
                 sendTextMessage(senderId, response, adminPageToken);
             });
