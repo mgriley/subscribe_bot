@@ -129,10 +129,10 @@ function clientReceiveMessage(messageEvent) {
         else if (text === 'all') {
             channels.allChannels(function(err, channels) {
                 const names = _.map(channels, function(c) { return c.name; });
-                var output = sprintf('%-20s%s', 'channel name', '# users\n');
+                var output = sprintf('%-20s%s', 'channel name', '# users\n\n');
                 for (var i = 0; i < channels.length; i++) {
                     const c = channels[i];
-                    output += sprintf('%-20s(%5i)\n', c.name, c.numUsers);
+                    output += sprintf('%-20s(%i)\n', c.name, c.numUsers);
                 }
                 sendTextMessage(senderId, output, clientPageToken);
             });
