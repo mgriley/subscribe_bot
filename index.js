@@ -13,6 +13,12 @@ const adminPageToken = 'EAAQyl3PaDKIBAIK3qsGBZCuXgYtCYNn677p4QCYHnr5nNKIMH7IYhgp
 const clientPageId = '733259543504701'
 const adminPageId = '974674739330325'
 
+const instructions = "Sorry, I don't understand. The following are the commands I know: \n" +
+    "1. \"create\": create a new channel by providing channel name and password" +
+    "\n 2. \"add\": add current admin to channel by providing corresponding " +
+    "channel name and password \n 3. \"send\" broadcast a message by providing " +
+    "name and message \n 4. \"mine\": list all your channel subscriptions";
+
 // setup server
 const app = express();
 app.use(bodyparser.json({ verify: verifyRequestSignature }));
@@ -63,7 +69,7 @@ function clientReceiveMessage(messageEvent) {
     const message = messageEvent.message;
     const text = message.text;
     const attachments = message.attachments;
-    console.log('client received msg', message);       
+    console.log('client received msg', message);
     console.log('text', text);
     console.log('attachments', attachments);
 
@@ -94,7 +100,7 @@ function clientReceiveMessage(messageEvent) {
     }
     if (text === 't') {
         const s = new Date();
-        channels.setUserState(senderId, s, function(err) {
+        channels.setUserState(senderId, s, function (err) {
         });
     }
 
@@ -109,11 +115,12 @@ function clientReceiveMessage(messageEvent) {
 function serverReceiveMessage(messageEvent) {
     const senderId = messageEvent.sender.id;
     const message = messageEvent.message;
-    const text = message.text.split(" ");
+    const rawText = message.text;
+    const text = rawText.split(" ");
     console.log('server received', message.text);
 
     // SAMPLE
-    channels.getAdminData(senderId, function(err, doc) {
+    channels.getAdminData(senderId, function (err, doc) {
         console.log(doc);
 
         // FOR WILL
@@ -133,47 +140,61 @@ function serverReceiveMessage(messageEvent) {
         */
     });
 
-    var response = "";
+    var response = "default";
+    const command = text[0].toLowerCase();
 
-    if (text.length === 3) {
-        const command = text[0];
+    if (text.length === 1 && command === 'mine') {
+        channels.myPermissions(senderId, function (err, channels) {
+            console.log('channels', channels);
+            response = "Your channels: " + channels;
+            sendTextMessage(senderId, response, adminPageToken);
+        });
+    } else if (text.length === 3) {
+
         const param1 = text[1];
         const param2 = text[2];
 
-        if (text[0] === 'm') {
-            channels.myPermissions(senderId, function (err, channels) {
-                console.log('channels', channels);
-            });
-        }
-
-        if (text[0] === 'create') {
+        if (command === 'create') {
             channels.createChannel(senderId, param1, param2, function (err) {
                 if (err) {
-                    //console.log(err);
-                    response = err;
+                    console.log(err);
+                    response = "Channel with the name \"" + param1 + "\" already exists";
                 } else {
-                    response = "Created";
+                    response = "Created channel \"" + param1 + "\" with password \"" + param2 + "\"";
                 }
+                sendTextMessage(senderId, response, adminPageToken);
             });
-        }
-        
-        if (text[0] === 'l') {
-            channels.channelListeners(senderId, 'mytestb', function (err, listeners) {
+        } else if (command === 'add') {
+            channels.addPermission(senderId, param1, param2, function (err) {
                 if (err) {
-                    console.error(err);
+                    if (err.error = 'wrong password') {
+                        response = "Incorrect password for channel \"" + param1 + "\"";
+                    } else {
+                        response = "No channel with that name";
+                    }
+                } else {
+                    response = "Permission added";
+                }
+                sendTextMessage(senderId, response, adminPageToken);
+            });
+        } else if (command === 'send') {
+            channels.channelListeners(senderId, param1, function (err, listeners) {
+                if (err) {
+                    response = "You do not have the required permissions"
                 } else {
                     // send a msg to all of the listeners
                     _.each(listeners, function (id) {
-                        sendTextMessage(id, 'greetings', clientPageToken);
+                        sendTextMessage(id, rawText.indexOf(param2), clientPageToken);
                     });
+                    response = "Successfully sent!";
                 }
+                sendTextMessage(senderId, response, adminPageToken);
             });
+        } else {
+            sendTextMessage(senderId, instructions, adminPageToken);
         }
-        if (text[0] === 'test') {
-            console.log('test type');
-        }
-
-        sendTextMessage(senderId, "heard", adminPageToken);
+    } else {
+        sendTextMessage(senderId, instructions, adminPageToken);
     }
 }
 
