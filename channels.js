@@ -3,7 +3,7 @@ const MongoClient = require('mongodb').MongoClient
 const _ = require('underscore');
 
 var db;
-const url = 'mongodb://localhost:27017'
+const url = 'mongodb://localhost:27017/botcast'
 MongoClient.connect(url, function(err, myDb) {
     if (err) {
         console.error(err);
