@@ -157,82 +157,132 @@ function clientReceiveMessage(messageEvent) {
     });
 }
 
+function handleDefaultState(senderId, message, doc) {
+    var response = "default";
+    const rawText = message.text;
+    const text = rawText.split(" ");
+    const command = text[0].toLowerCase();
+
+    if (text.length === 1 && command === 'mine') {
+        channels.myPermissions(senderId, function (err, channels) {
+            console.log('channels', channels);
+            response = "Your channels: " + channels;
+            sendTextMessage(senderId, response, adminPageToken);
+        });
+    } else if (command === 'create' && text.length === 3) {
+        channels.createChannel(senderId, text[1], text[2], function (err) {
+            if (err) {
+                console.log(err);
+                response = "Channel with the name \"" + text[1] + "\" already exists";
+            } else {
+                response = "Created channel \"" + text[1] + "\" with password \"" + text[2] + "\"";
+            }
+            sendTextMessage(senderId, response, adminPageToken);
+        });
+    } else if (command === 'add' && text.length === 3) {
+        channels.addPermission(senderId, text[1], text[2], function (err) {
+            if (err) {
+                if (err.error === 'wrong password') {
+                    response = "Incorrect password for channel \"" + text[1] + "\"";
+                } else {
+                    response = "No channel with that name";
+                }
+            } else {
+                response = "Permission added";
+            }
+            sendTextMessage(senderId, response, adminPageToken);
+        });
+    } else if (command === 'send' && text.length === 2) {
+        const channelName = text[1];
+        channels.channelListeners(senderId, channelName, function (err, listeners) {
+            if (err) {
+                response = sprintf('\"%s\" is not one your channels. type \"help\" to see how to create or add a channel', channelName);
+            } else {
+                // change to send state
+                response = 'send me a text or pic to broadcast. or \"cancel\"';
+                channels.setAdminState(senderId, {name: 'send', channelName: channelName}, function(err) {});
+            }
+            sendTextMessage(senderId, response, adminPageToken);
+        });
+    } else {
+        sendTextMessage(senderId, adminInstructions, adminPageToken);
+    }
+}
+
+function handleSendState(senderId, message, doc) {
+    if (message.text && message.text.split(' ')[0] === 'cancel') {
+        sendTextMessage(senderId, 'cancelled', adminPageToken);    
+    } else {
+        const channelName = doc.state.channelName;
+        channels.channelListeners(senderId, channelName, function (err, listeners) {
+            // send a msg to all of the listeners (either a pic or an attachment)
+            var sendFunc = null;
+            var validType = true;
+
+            // if it's a text message, send an exact copy of the text
+            if (message.text) {
+                console.log('message is text type');
+                sendFunc = function(id) {
+                    const msg = sprintf("%s:\n%s", channelName, message.text);
+                    sendTextMessage(id, msg, clientPageToken);
+                }
+            } else if (message.attachments) {
+                console.log('message is attachment type');
+                // if it's a photo, send the photo
+                const photo = message.attachments[0];
+                if (photo.type === 'image') {
+                    sendFunc = function(id) {
+                        // send a text to tell who it's from, and forward the photo
+                        const msg = sprintf("%s", channelName);
+                        sendTextMessage(id, msg, clientPageToken);
+                        const imageUrl = photo.payload.url;
+                        sendImageMessage(id, imageUrl, clientPageToken);
+                    }
+                } else {
+                    // attachment isn't a photo
+                    validType = false;
+                }
+            } else {
+                // is this even possible?
+                console.error('unknown message format');
+                validType = false;
+            }
+
+            // if a valid msg type, send
+            if (validType) {
+                _.each(listeners, sendFunc);
+                sendTextMessage(senderId, 'sent!', adminPageToken);
+            } else {
+                sendTextMessage(senderId, 'i can only send text and image, sorry', adminPageToken);
+            }
+        });
+    }
+    channels.setAdminState(senderId, {name: 'default'}, function(err) {});
+}
+
+function handleCommand(senderId, message, doc) {
+    console.log(doc);
+    if (doc.state.name === 'default') {
+        if (message.text) {
+            handleDefaultState(senderId, message, doc);
+        } else {
+            sendTextMessage(senderId, adminInstructions, adminPageToken);
+        }
+    } else if (doc.state.name === 'send') {
+        handleSendState(senderId, message, doc);
+    } else {
+        console.error('unknown state!');
+    }
+}
+
 function serverReceiveMessage(messageEvent) {
     const senderId = messageEvent.sender.id;
     const message = messageEvent.message;
-    const rawText = message.text;
-    const text = rawText.split(" ");
     console.log('server received', message.text);
 
     // SAMPLE
     channels.getAdminData(senderId, function (err, doc) {
-
-        var response = "default";
-        const command = text[0].toLowerCase();
-
-        if (text.length === 1 && command === 'mine') {
-            channels.myPermissions(senderId, function (err, channels) {
-                console.log('channels', channels);
-                response = "Your channels: " + channels;
-                sendTextMessage(senderId, response, adminPageToken);
-            });
-        } else if (command === 'create' && text.length === 3) {
-            channels.createChannel(senderId, text[1], text[2], function (err) {
-                if (err) {
-                    console.log(err);
-                    response = "Channel with the name \"" + text[1] + "\" already exists";
-                } else {
-                    response = "Created channel \"" + text[1] + "\" with password \"" + text[2] + "\"";
-                }
-                sendTextMessage(senderId, response, adminPageToken);
-            });
-        } else if (command === 'add' && text.length === 3) {
-            channels.addPermission(senderId, text[1], text[2], function (err) {
-                if (err) {
-                    if (err.error === 'wrong password') {
-                        response = "Incorrect password for channel \"" + text[1] + "\"";
-                    } else {
-                        response = "No channel with that name";
-                    }
-                } else {
-                    response = "Permission added";
-                }
-                sendTextMessage(senderId, response, adminPageToken);
-            });
-        } else if (command === 'send' && text.length >= 3) {
-            const channelName = text[1];
-            channels.channelListeners(senderId, channelName, function (err, listeners) {
-                if (err) {
-                    response = sprintf('\"%s\" is not one your channels. type \"help\" to see how to create or add a channel', channelName);
-                } else {
-                    // send a msg to all of the listeners
-                    _.each(listeners, function (id) {
-                        const msg = sprintf("%s:\n%s", channelName, rawText.slice(rawText.indexOf(text[2])));
-                        sendTextMessage(id, msg, clientPageToken);
-                    });
-                    response = "sent!";
-                }
-                sendTextMessage(senderId, response, adminPageToken);
-            });
-        } else {
-            sendTextMessage(senderId, adminInstructions, adminPageToken);
-        }
-
-        // FOR WILL
-        /*
-        if (doc.state === 'default') {
-            // ... user types 'send channelname'
-            channels.setAdminState(senderId, 'sendnext', function(err) {
-            });
-        } else if (doc.state === 'sendnext') {
-            if (text === 'cancel') {
-                // ...
-                channels.setAdminState(senderId, 'default', function(err) {});
-            } else {
-                // broadcast whatever text or image got sent
-            }
-        }
-        */
+        handleCommand(senderId, message, doc);
     });
 }
 

@@ -115,7 +115,7 @@ module.exports = {
                 var data = {
                     fbId: adminId,
                     permissions: [], // list of channel names
-                    state: 'default'
+                    state: {name: 'default'}
                 }
                 db.collection('admins').insertOne(data);
                 callback(error, data);
