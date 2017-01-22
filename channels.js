@@ -190,7 +190,11 @@ module.exports = {
             if (_.contains(admin.permissions, channelName)) {
                 // get all of the listeners
                 db.collection('channels').findOne({name: channelName}, function(err, channel) {
-                    callback(null, channel.listeners);
+                    if (channel) {
+                        callback(null, channel.listeners);
+                    } else {
+                        callback({error: 'channel gone'}, null);
+                    }
                 });
             } else {
                 callback({error: 'permission denied'}, null);

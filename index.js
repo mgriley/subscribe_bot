@@ -200,7 +200,7 @@ function serverReceiveMessage(messageEvent) {
         } else if (command === 'send' && text.length >= 3) {
             channels.channelListeners(senderId, text[1], function (err, listeners) {
                 if (err) {
-                    response = "You do not have the required permissions"
+                    response = sprintf('\"%s\" is not one your channels. type \"help\" to see how to create or add a channel', text[1]);
                 } else {
                     // send a msg to all of the listeners
                     _.each(listeners, function (id) {
