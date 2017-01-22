@@ -16,7 +16,6 @@
     "yum"
   ],
   "author": "Kenny Chen, Will Glisson, Yuan Kong, and Matthew Riley",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/mgriley/subscribe_bot/issues"
   },
