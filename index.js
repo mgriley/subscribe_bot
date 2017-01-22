@@ -16,11 +16,11 @@ const adminPageToken = 'EAAad9gLAyiYBAEHjL0LcFZAT0HxRD7KlFuOlZA7anZCtoQxpgVTqCxS
 const clientPageId = '1399706990047748'
 const adminPageId = '646470285540501'
 
-const adminInstructions = "Sorry, I don't understand. The following are the commands I know: \n" +
-    "1. \"create\": create a new channel by providing channel name and password" +
-    "\n 2. \"add\": add current admin to channel by providing corresponding " +
-    "channel name and password \n 3. \"send\" broadcast a message by providing " +
-    "name and message \n 4. \"mine\": list all your channel subscriptions";
+const adminInstructions = "sorry, I don't understand, try these: \n" +
+    "1. \"create name password\"\nto create a channel with given name and password\n\n" +
+    "2. \"add name password\"\nto get permission to send to an existing channel\n\n" +
+    "3. \"send name my message\"\nto send a message to the channel with the given name (must be one of your channels)\n\n" +
+    "4. \"mine\"\nfor list of the channels you can send to";
 
 const clientInstructions = "Sorry, I don't understand. The commands are as follows: \n 1. type channel name to subscribe and type it again to unsubscribe \n 2. \"mine\": see all your subscribed channels \n 3. \"all\": see all available channels";
 
@@ -183,7 +183,6 @@ function serverReceiveMessage(messageEvent) {
         }
         */
     });
-    /*
 
     var response = "default";
     const command = text[0].toLowerCase();
@@ -241,7 +240,6 @@ function serverReceiveMessage(messageEvent) {
     } else {
         sendTextMessage(senderId, adminInstructions, adminPageToken);
     }
-    */
 }
 
 function sendTextMessage(recipientId, text, pageToken) {
