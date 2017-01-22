@@ -5,7 +5,10 @@ const crypto = require('crypto');
 const request = require('request');
 const channels = require('./channels.js');
 const _ = require('underscore');
+const validate = require('jsonschema').validate;
+const sprintf = require('sprintf-js').sprintf;
 
+const port = 5000;
 const verifyToken = 'sample_verify_token';
 const appSecret = 'b3167d68247c22829e74279ca2921a60'
 const clientPageToken = 'EAAQyl3PaDKIBAAhvXnVQ7aZBY43qIpX1XPN65qCmmo7P8GOeQ34UmkV1nO3Tw954ZA7jsLsbnABg8A7hKAw5cBqBv0eNThSZBG8WN3KmdDqUtOJRrhJHWahDzxqf2QH3NYYOdymtDf8rqbAsJiAxtmO7WLRKOJEiD3ZCKFC1MAZDZD'
@@ -64,6 +67,40 @@ app.post('/incoming', function (req, res) {
     }
 });
 
+const dataReq = {
+    type: 'object',
+    properties: {
+        name: {
+            type: 'string'
+        },
+        password: {
+            type: 'string'
+        }
+    },
+    required: ['name', 'password']
+}
+app.get('/data', function(req, res) {
+    console.log('get: /data');
+
+    // validate req
+    if (validate(req.body, dataReq).errors) {
+        res.status('400').send('invalid req body');
+        return;
+    }
+
+    // get the channel data
+    const name = data.name;
+    const password = data.password;
+    
+    channels.channelData(name, password, function(err, data) {
+        if (err) {
+            res.send(err);
+        } else {
+            res.send(data);
+        }
+    });
+});
+
 function clientReceiveMessage(messageEvent) {
     const senderId = messageEvent.sender.id;
     const message = messageEvent.message;
@@ -73,43 +110,48 @@ function clientReceiveMessage(messageEvent) {
     console.log('text', text);
     console.log('attachments', attachments);
 
-    channels.getUserData(senderId, function (err, doc) {
-        console.log(doc);
+    channels.getUserData(senderId, function(err, doc) {
+        if (text === 'mine') {
+            channels.myChannels(senderId, function(err, channels) {
+                var output = "your listening to:";
+                for (var i = 0; i < channels.length; i++) {
+                    output = output + "\n" + channels[i];
+                }
+                sendTextMessage(senderId, output, clientPageToken);
+            });
+        }
+        else if (text === 'all') {
+            channels.allChannels(function(err, channels) {
+                const names = _.map(channels, function(c) { return c.name; });
+                var output = sprintf('%-20s%s', 'channel name', '# users\n');
+                for (var i = 0; i < channels.length; i++) {
+                    const c = channels[i];
+                    output += sprintf('%-20s(%5i)\n', c.name, c.numUsers);
+                }
+                sendTextMessage(senderId, output, clientPageToken);
+            });
+        }
+        else {
+            channels.allChannels(function(err, channels) {
+                const names = _.map(channels, function(c) { return c.name; });
+                if (_.contains(doc.channels, text)) {
+                    channels.unsubscribe(senderId, text, function(err) {
+                    });
+                    sendTextMessage(senderId, "you just unsubscribed from " + text, clientPageToken);
+                }
+                else if (_.contains(names, text)) {
+                    channels.subscribe(senderId, text, function(err) {
+                    });
+                    console.log("you have subsribed to" + text);
+                    sendTextMessage(senderId, "you just subscribed to " + text, clientPageToken);
+                }
+                else {
+                    sendTextMessage(senderId, instructions, clientPageToken);
+                }
+            });
+            
+        }
     });
-
-    if (text === 's') {
-        channels.subscribe(senderId, 'mytestb', function (err) {
-        });
-    }
-    if (text === 'u') {
-        channels.unsubscribe(senderId, 'mytestb', function (err) {
-        });
-    }
-    if (text === 'm') {
-        channels.myChannels(senderId, function (err, names) {
-            console.log('mine:', names);
-        });
-    }
-    if (text === 'a') {
-        channels.allChannels(function (err, names) {
-            if (err) {
-                console.error(err);
-            }
-            console.log('all: ', names);
-        });
-    }
-    if (text === 't') {
-        const s = new Date();
-        channels.setUserState(senderId, s, function (err) {
-        });
-    }
-
-    if (text) {
-        sendTextMessage(senderId, text, clientPageToken);
-    }
-    if (attachments) {
-        sendImageMessage(senderId, attachments[0].payload.url, clientPageToken);
-    }
 }
 
 function serverReceiveMessage(messageEvent) {
@@ -259,6 +301,6 @@ function verifyRequestSignature(req, res, buf) {
     }
 }
 
-app.listen(5000, function () {
+app.listen(port, function() {
     console.log('started listening');
 });
