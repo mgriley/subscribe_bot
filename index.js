@@ -16,11 +16,13 @@ const adminPageToken = 'EAAQyl3PaDKIBAIK3qsGBZCuXgYtCYNn677p4QCYHnr5nNKIMH7IYhgp
 const clientPageId = '733259543504701'
 const adminPageId = '974674739330325'
 
-const instructions = "Sorry, I don't understand. The following are the commands I know: \n" +
+const adminInstructions = "Sorry, I don't understand. The following are the commands I know: \n" +
     "1. \"create\": create a new channel by providing channel name and password" +
     "\n 2. \"add\": add current admin to channel by providing corresponding " +
     "channel name and password \n 3. \"send\" broadcast a message by providing " +
     "name and message \n 4. \"mine\": list all your channel subscriptions";
+
+const clientInstructions = "Sorry, I don't understand. The commands are as follows: \n 1. type channel name to subscribe and type it again to unsubscribe \n 2. \"mine\": see all your subscribed channels \n 3. \"all\": see all available channels";
 
 // setup server
 const app = express();
@@ -146,7 +148,7 @@ function clientReceiveMessage(messageEvent) {
                     sendTextMessage(senderId, "you just subscribed to " + text, clientPageToken);
                 }
                 else {
-                    sendTextMessage(senderId, instructions, clientPageToken);
+                    sendTextMessage(senderId, clientInstructions, clientPageToken);
                 }
             });
             
@@ -233,10 +235,10 @@ function serverReceiveMessage(messageEvent) {
                 sendTextMessage(senderId, response, adminPageToken);
             });
         } else {
-            sendTextMessage(senderId, instructions, adminPageToken);
+            sendTextMessage(senderId, adminInstructions, adminPageToken);
         }
     } else {
-        sendTextMessage(senderId, instructions, adminPageToken);
+        sendTextMessage(senderId, adminInstructions, adminPageToken);
     }
 }
 
