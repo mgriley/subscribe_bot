@@ -21,9 +21,9 @@ const adminPageId = config.adminPageId
 const adminInstructions = "I don't understand, try these:\n\n" +
     "1. \"create name password\"\ncreates a channel with given name and password\n\n" +
     "2. \"add name password\"\nfor permission to send to an existing channel\n\n" +
-    "3. \"send name my message\"\nto send a message to your channel with the given name\n\n" +
+    "3. \"send name\"\nto send a message to your channel with the given name\n\n" +
     "4. \"mine\"\nfor list of the channels you can send to\n\n" +
-    "examples:\n\"create pandas a78hyrw\"\n\"add pandas a78hyrw\"\n\"send pandas welcome to my feed about pandas\"";
+    "examples:\n\"create pandas a78hyrw\"\n\"add pandas a78hyrw\"\n\"send pandas\"";
 
 const clientInstructions = "I don't understand, try these:\n\n" + 
 "1. type channel name to toggle subscribe/unsubscribe\n\n2. \"mine\": see all your subscribed channels\n\n3. \"all\": see all available channels";
