@@ -164,8 +164,9 @@ module.exports = {
         });
     },
 
+    // assumes that doesn't already have permissions!
     // callback: func(err)
-    // err occurs if the admin doesn't have the correct permissions
+    // err occurs if the admin doesn't have the correct creds
     addPermission: function(adminId, channelName, channelPassword, callback) {
         db.collection('channels').findOne({name: channelName}, function(err, channel) {
             if (channel) {

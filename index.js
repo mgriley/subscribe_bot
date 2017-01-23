@@ -183,18 +183,24 @@ function handleDefaultState(senderId, message, doc) {
             sendTextMessage(senderId, response, adminPageToken);
         });
     } else if (command === 'add' && text.length === 3) {
-        channels.addPermission(senderId, text[1], text[2], function (err) {
-            if (err) {
-                if (err.error === 'wrong password') {
-                    response = "incorrect password for channel \"" + text[1] + "\"";
+        // if already has permissions:
+        if (_.contains(doc.permissions, text[1])) {
+            const s = sprintf("you can already send to \"%s\"", text[1]);
+            sendTextMessage(senderId, s, adminPageToken)
+        } else {
+            channels.addPermission(senderId, text[1], text[2], function (err) {
+                if (err) {
+                    if (err.error === 'wrong password') {
+                        response = "incorrect password for channel \"" + text[1] + "\"";
+                    } else {
+                        response = "no channel with that name";
+                    }
                 } else {
-                    response = "no channel with that name";
+                    response = "permission added";
                 }
-            } else {
-                response = "permission added";
-            }
-            sendTextMessage(senderId, response, adminPageToken);
-        });
+                sendTextMessage(senderId, response, adminPageToken);
+            });
+        }
     } else if (command === 'send' && text.length === 2) {
         const channelName = text[1];
         channels.channelListeners(senderId, channelName, function (err, listeners) {
